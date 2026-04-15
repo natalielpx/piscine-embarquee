@@ -33,12 +33,10 @@ int main( void ) {
 
 		// Switch 1
 		// If Switch 1 not pressed, record sw1 as not pressed
-		if (READ_PIN(PIND, SWITCH_1)) {
-			_delay_ms(30);
+		if (READ_PIN(PIND, SWITCH_1))
 			sw1 = 0;
 		// If Switch 1 pressed, increment and record sw1 as pressed
-		} else if (!sw1) {
-			_delay_ms(30);
+		else if (!sw1) {
 			if (number < 15)
 				display_number(++number);
 			sw1 = 1;
@@ -46,15 +44,16 @@ int main( void ) {
 
 		// Switch 2
 		// If Switch 2 not pressed, record sw2 as not pressed
-		if (READ_PIN(PIND, SWITCH_2)) {
-			_delay_ms(30);
+		if (READ_PIN(PIND, SWITCH_2))
 			sw2 = 0;
 		// If Switch 2 pressed, decrement and record sw2 as pressed
-		} else if(!sw2) {
-			_delay_ms(30);
+		else if(!sw2) {
 			if (number > 0)
 				display_number(--number);
 			sw2 = 1;
 		}
+
+		// Debounce
+		_delay_ms(30);
 	}
 }
