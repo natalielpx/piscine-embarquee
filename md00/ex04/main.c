@@ -1,76 +1,60 @@
-#include <avr/io.h>
-#include <util/delay.h>
+#include "embd.h"
 
-#define LED_D1 PB0
-#define LED_D2 PB1
-#define LED_D4 PB4
-#define SWITCH_1 PD2
-#define SWITCH_2 PD4
+void display_number( int num ) {
 
-#define INPUT 0
-#define OUTPUT 1
-
-#define LOW 0
-#define HIGH 1
-
-void set_pin( volatile uint8_t * reg, unsigned int pin, int state) {
-
-	if (state)
-		*reg |= (1 << pin);
-	else
-		*reg &= ~(1 << pin);
+	SET_PIN(PORTB, LED_D1, num & 1);
+	SET_PIN(PORTB, LED_D2, num & (1 << 1));
+	SET_PIN(PORTB, LED_D3, num & (1 << 2));
+	SET_PIN(PORTB, LED_D4, num & (1 << 3));
 }
 
-int read_pin( volatile uint8_t * reg, unsigned int pin) {
+void setup( void ) {
 
-	return !!(*reg & (1 << pin));	// !! turns any non-zero values to 1
-}
+	SET_PIN(DDRB, LED_D1, OUTPUT);		// Set PB0 to output
+	SET_PIN(DDRB, LED_D2, OUTPUT);		// Set PB1 to output
+	SET_PIN(DDRB, LED_D3, OUTPUT);		// Set PB2 to output
+	SET_PIN(DDRB, LED_D4, OUTPUT);		// Set PB4 to output
 
-int button_pressed( volatile uint8_t * reg, unsigned int pin ) {
-
-	if (!read_pin(reg, pin))
-		return (_delay_ms(30), 1);
-
-	return 0;
-}
-
-int button_letgo( volatile uint8_t * reg, unsigned int pin ) {
-
-	if (read_pin(reg, pin))
-		return (_delay_ms(30), 1);
-
-	return 0;
+	SET_PIN(DDRD, SWITCH_1, INPUT);		// Set PD2 to input
+	SET_PIN(PORTD, SWITCH_1, PULL_UP);	// Enable pull-up on PD2
+	SET_PIN(DDRD, SWITCH_2, INPUT);		// Set PD4 to input
+	SET_PIN(PORTD, SWITCH_2, PULL_UP);	// Enable pull-up on PD4
 }
 
 int main( void ) {
 	
-	set_pin(&DDRB, LED_D1, OUTPUT);		// Set PB0 to output
-	set_pin(&DDRB, LED_D2, OUTPUT);		// Set PB1 to output
-	set_pin(&DDRB, LED_D4, OUTPUT);		// Set PB4 to output
-
-	set_pin(&DDRD, SWITCH_1, INPUT);	// Set PD2 to input
-	set_pin(&PORTD, SWITCH_1, 1);		// Enable pull-up on PD2
-	set_pin(&DDRD, SWITCH_2, INPUT);	// Set PD4 to input
-	set_pin(&PORTD, SWITCH_2, 1);		// Enable pull-up on PD4
+	setup();
 
 	int number = 0;
-	int sw1 = 1, sw2 = 1;
+	int sw1 = 0;
+	int sw2 = 0;
 
 	while (42) {
 
-		// Check if button is pressed
-		sw1 = button_pressed(&PIND, SWITCH_1);
-		sw2 = button_pressed(&PIND, SWITCH_2);
+		// Switch 1
+		// If Switch 1 not pressed, record sw1 as not pressed
+		if (READ_PIN(PIND, SWITCH_1)) {
+			_delay_ms(30);
+			sw1 = 0;
+		// If Switch 1 pressed, increment and record sw1 as pressed
+		} else if (!sw1) {
+			_delay_ms(30);
+			if (number < 15)
+				display_number(++number);
+			sw1 = 1;
+		}
 
-		// Wait for button to be let go
-		if (sw1 && button_letgo(&PIND, SWITCH_1) && number < 7)
-			++number;
-		if (sw2 && button_letgo(&PIND, SWITCH_2) && number > 0)
-			--number;
-
-		// Display number
-		set_pin(&PORTB, LED_D1, number & 1);
-		set_pin(&PORTB, LED_D2, number & (1 << 1));
-		set_pin(&PORTB, LED_D4, number & (1 << 2));
+		// Switch 2
+		// If Switch 2 not pressed, record sw2 as not pressed
+		if (READ_PIN(PIND, SWITCH_2)) {
+			_delay_ms(30);
+			sw2 = 0;
+		// If Switch 2 pressed, decrement and record sw2 as pressed
+		} else if(!sw2) {
+			_delay_ms(30);
+			if (number > 0)
+				display_number(--number);
+			sw2 = 1;
+		}
 	}
 }
