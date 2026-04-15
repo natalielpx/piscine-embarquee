@@ -1,48 +1,33 @@
-#include <avr/io.h>
-#include <util/delay.h>
+#include "embd.h"
 
-#define LED_D1 PB0
-#define SWITCH_1 PD2
+void setup( void ) {
 
-#define INPUT 0
-#define OUTPUT 1
-
-#define LOW 0
-#define HIGH 1
-
-#define OFF 0
-#define ON 1
-
-void set_pin( volatile uint8_t * reg, unsigned int pin, int state) {
-
-	if (state)
-		*reg |= (1 << pin);
-	else
-		*reg &= ~(1 << pin);
-}
-
-int read_pin( volatile uint8_t * reg, unsigned int pin) {
-
-	return !!(*reg & (1 << pin));	// !! turns any non-zero values to 1
+	SET_PIN(DDRB, LED_D1, OUTPUT);		// Set PB0 to output
+	SET_PIN(DDRD, SWITCH_1, INPUT);		// Set PD1 to input
+	SET_PIN(PORTD, SWITCH_1, PULL_UP);	// Enable pull-up on PD2
 }
 
 int main( void ) {
-	
-	set_pin(&DDRB, LED_D1, OUTPUT);		// Set PB0 to output
-	set_pin(&DDRD, SWITCH_1, INPUT);	// Set PD1 to input
-	set_pin(&PORTD, SWITCH_1, 1);		// Enable pull-up on PD2
-
-	int state = OFF;
 
 	while (42) {
 
-		if (read_pin(&PIND, SWITCH_1))
+		// Switch not pressed
+		if (READ_PIN(PIND, SWITCH_1))
 			continue;
 		
-		while (!read_pin(&PIND, SWITCH_1))
-			_delay_ms(10);
-	
-		set_pin(&PORTB, LED_D1, !state);
-		state = !state;
+		// Swtich press detected
+
+		// Debounce 
+		_delay_ms(50);
+		
+		// Confirm switch pressed
+		if (!READ_PIN(PIND, SWITCH_1)) {
+
+			TOGGLE_PIN(PORTB, LED_D1);
+
+			// Wait for switch release
+			while (!READ_PIN(PIND, SWITCH_1))
+				_delay_ms(20);
+		}
 	}
 }
