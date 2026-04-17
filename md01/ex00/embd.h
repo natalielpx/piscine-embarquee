@@ -2,7 +2,6 @@
 # define EMBD_H
 
 # include <avr/io.h>
-# include <util/delay.h>
 
 # define LED_D1 PB0
 # define LED_D2 PB1
