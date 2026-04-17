@@ -29,14 +29,15 @@ RM      = rm -f
 # 	FLAGS
 ######################################
 
-CFLAGS	= -Os
+CFLAGS	= -Os -Wall -Wextra -Werror
+DBFLAGS	= -g3
 
 ######################################
 # 	SOURCES/OBJECTS
 ######################################
 
 SRC	= main.c
-BIN	= main.bin
+ELF	= main.elf
 
 ######################################
 # 	RECIPES
@@ -44,17 +45,17 @@ BIN	= main.bin
 
 all: hex flash
 
-hex: $(BIN)
+hex: $(ELF)
 	$(OBJCPY) -O $(FORMAT) -R .eeprom $< $(NAME)
 
-%.bin: %.c
-	$(CC) -mmcu=$(MMCU) -DF_CPU=$(F_CPU) ${CFLAGS} $< -o $@
+%.elf: %.c
+	$(CC) -mmcu=$(MMCU) -DF_CPU=$(F_CPU) ${CFLAGS} ${DBFLAGS} $< -o $@
 
 flash:
 	$(DUDE) -c $(PRGMMR) -p $(CHIP) -P $(PORT) -b $(BAUD) -U $(MMOP)
 
 clean:
-	$(RM) $(BIN)
+	$(RM) $(ELF)
 	$(RM) $(NAME)
 
 re: clean all
