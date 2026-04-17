@@ -9,6 +9,8 @@ void setup( void ) {
 
 int main( void ) {
 
+	setup();
+
 	while (42) {
 
 		// Switch not pressed

@@ -8,6 +8,8 @@ void setup( void ) {
 }
 
 int main( void ) {
+
+	setup();
 	
 	int prev = PULL_UP, curr = PULL_UP;
 
