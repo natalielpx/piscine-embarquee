@@ -1,6 +1,8 @@
 #include "embd.h"
 
-#define TOP 15624
+#define TOP 62499
+#define DC_50 ((TOP + 1) / 2) - 1
+#define DC_10_INC ((TOP + 1) / 10)
 
 void setup() {
 
@@ -39,18 +41,17 @@ int main( void ) {
 	TCCR1A |= (1 << COM1A1); 
 
 	// Pulse Width Modulation
-	ICR1 = TOP;			// F_CPU / (prescaler * TOP)
-	OCR1A = TOP / 2;	// duty cycle: 50%
+	ICR1 = TOP;			// F_CPU / prescaler
+	OCR1A = DC_50;		// duty cycle: 50%
 	
-	// Start timer with prescaler /1024
-	// Prescaler: Clock/1024
+	// Start timer with prescaler /256
+	// Prescaler: Clock/256
 	// CS12 = 1 
 	// CS11 = 0
-	// CS10 = 1
+	// CS10 = 0
 	// reference: https://nerd-corner.com/arduino-timer-interrupts-how-to-program-arduino-registers/
-	TCCR1B |= (1 << CS12) | (1 << CS10);
+	TCCR1B |= (1 << CS12);
 
-	uint8_t index = 5;
 	uint8_t sw1 = 0, sw2 = 0;
 
 	// Duty Cycle Controls
@@ -64,10 +65,8 @@ int main( void ) {
 		else if (!sw1) {
 			sw1 = 1;
 			// Update duty cycle
-			if (index < 10) {
-				++index;
-				OCR1A = ((uint32_t)TOP * index) / 10;
-			}
+			if (OCR1A < TOP)
+				OCR1A += DC_10_INC;
 		}
 		
 		// Switch 2
@@ -78,10 +77,8 @@ int main( void ) {
 		else if(!sw2) {
 			sw2 = 1;
 			// Update duty cycle
-			if (index > 0) {
-				--index;
-				OCR1A = ((uint32_t)TOP * index) / 10;
-			}
+			if (OCR1A > DC_10_INC)
+				OCR1A -= DC_10_INC;
 		}
 
 		// Debounce

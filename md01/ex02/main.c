@@ -27,16 +27,16 @@ int main( void ) {
 	TCCR1A |= (1 << COM1A1); 
 
 	// Pulse Width Modulation
-	ICR1 = 7812;		// F_CPU / (2 * prescaler * TOP)
-	OCR1A = ICR1 / 10;	// duty cycle: 10%
+	ICR1 = 31249;		// F_CPU / (2 * prescaler)
+	OCR1A = 3125;		// duty cycle: 10%
 	
-	// Start timer with prescaler /1024
-	// Prescaler: Clock/1024
+	// Start timer with prescaler /256
+	// Prescaler: Clock/256
 	// CS12 = 1 
 	// CS11 = 0
-	// CS10 = 1
+	// CS10 = 0
 	// reference: https://nerd-corner.com/arduino-timer-interrupts-how-to-program-arduino-registers/
-	TCCR1B |= (1 << CS12) | (1 << CS10);
+	TCCR1B |= (1 << CS12);
 
 	// Empty loop
 	while (42);
