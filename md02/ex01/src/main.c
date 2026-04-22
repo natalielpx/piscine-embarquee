@@ -17,7 +17,7 @@ void setup( void ) {
 	TCCR1B |= (1 << CS12);		// prescaler /256
 }
 
-void TIMER1_COMPA_vect( void ) {
+void __attribute__(( signal, used, externally_visible )) TIMER1_COMPA_vect( void ) {
 
 	uart_printstr("Hello World!\r\n");
 }

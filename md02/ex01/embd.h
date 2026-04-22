@@ -32,8 +32,4 @@ void uart_init( void );
 void uart_tx( char );
 void uart_printstr( const char * );
 
-// ---- Interrupt Vectors ----
-
-void TIMER1_COMPA_vect( void ) __attribute__(( interrupt, used, externally_visible ));
-
 #endif
