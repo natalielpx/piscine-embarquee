@@ -7,7 +7,7 @@ int main( void ) {
 	while (42) {
 
 		// Read input
-		unsigned char c = uart_rx();
+		uint8_t c = uart_rx();
 
 		// Enter
 		if (c == '\r') {
