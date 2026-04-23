@@ -24,6 +24,9 @@
 # define DISABLE 0
 # define ENABLE 1
 
+# define SET_FLAG 0
+# define CLR_FLAG 1
+
 # define READ_PIN(reg, bit) !!(reg & (1 << bit))
 # define SET_PIN(reg, bit, val) (val ? (reg |= (1 << bit)) : (reg &= ~(1 << bit)))
 # define TOGGLE_PIN(reg, bit) (reg ^= (1 << bit))
