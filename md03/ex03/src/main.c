@@ -68,10 +68,23 @@ int valid_colour( uint8_t * clr ) {
 void __attribute__((signal, used, externally_visible)) USART_RX_vect ( void ) {
 
 	static uint8_t buf[8] = {0};
-	static int i = 0;
-	
+	static uint8_t i = 0;
+	static uint8_t skip = 0;
+
 	uint8_t c = UDR0;
 
+	// Skip ESC — arrow keys send ESC [ A/B/C/D
+	if (skip) {
+		--skip;
+		return;
+	}
+
+	if (c == 0x1B) {
+		skip = 2;
+		return;
+	}
+
+	// Enter pressed
 	if (c == '\r') {
 
         // Print newline
@@ -89,6 +102,7 @@ void __attribute__((signal, used, externally_visible)) USART_RX_vect ( void ) {
 		i = 0;
 	}
 	
+	// Backspace pressed
 	else if (c == 127) {
 
 		// Print backspace
@@ -102,6 +116,7 @@ void __attribute__((signal, used, externally_visible)) USART_RX_vect ( void ) {
 			--i;
 	}
 
+	// Actual input
 	else if (i < 7) {
 
 		// Print input
