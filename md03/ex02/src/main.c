@@ -8,11 +8,10 @@ void init_rgb( void ) {
 	SET_PIN(DDRD, LED_G, OUTPUT);		// Set PD6 to Output
 
 	// ==== Interrupts ====
-	SREG = (1 << 7);
-	TIMSK1 = (1 << OCIE1A);
+	SREG = (1 << 7);			// Enable interrupts globally
+	TIMSK1 = (1 << OCIE1A);		// Enable interrupts on Timer1 for compare match A
 
-	// ==== Timers ====
-
+	// ==== LED RGB ====
     // -- Wave Generation Mode  --
     // ---------------------------
     // Fast PWM mode
@@ -25,7 +24,19 @@ void init_rgb( void ) {
     TCCR0A |= (1 << WGM01) | (1 << WGM00);
 	// Timer2 (LED_B)
     TCCR2A |= (1 << WGM21) | (1 << WGM20);
-	// ---------------------------
+	// -- Output Behaviour --
+	// ----------------------
+	// Clear OCnx on Compare Match
+	// Set OCnx at BOTTOM
+	// ref: datasheet pg113 table15-2, pg114 table15-6
+	// ----------------------
+	// Timer0 (LED_R & LED_G)
+	TCCR0A |= (1 << COM0A1) | (1 << COM0B1);
+	// Timer2 (LED_B)
+	TCCR2A |= (1 << COM2B1);
+	// ----------------------
+
+	// ==== Counter ====
 	// CTC mode
 	// TOP = OCR1A
 	// Update of OCRx at: Immediate
@@ -36,32 +47,13 @@ void init_rgb( void ) {
 	OCR1A = 245;
 	// ---------------------------
 
-	// -- Output Behaviour --
-	// ----------------------
-    // Clear OCnx on Compare Match
-    // Set OCnx at BOTTOM
-    // ref: datasheet pg113 table15-2, pg114 table15-6
-    // ----------------------
+    // ==== Start ====
     // Timer0 (LED_R & LED_G)
-	TCCR0A |= (1 << COM0A1) | (1 << COM0B1);
+	TCCR0B |= (1 << CS00);	    // No prescaler /1
     // Timer2 (LED_B)
-	TCCR2A |= (1 << COM2B1);
-	// ----------------------
-
-    // -- Start Timers --
-    // ------------------
-    // No prescaler /1
-    // ------------------
-    // Timer0 (LED_R & LED_G)
-	TCCR0B |= (1 << CS00);
-    // Timer2 (LED_B)
-    TCCR2B |= (1 << CS20);
-	// ------------------
-	// Prescaler /256
-	// ------------------
+    TCCR2B |= (1 << CS20);	    // No prescaler /1
 	// Timer1 (counter
-	TCCR1B |= (1 << CS12);
-	// ------------------
+	TCCR1B |= (1 << CS12);		// Prescaler /256
 }
 
 void set_rgb( uint8_t r, uint8_t g, uint8_t b ) {
