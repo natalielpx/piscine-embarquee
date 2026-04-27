@@ -1,9 +1,5 @@
 #include "../embd.h"
 
-#define PRESCALER 8
-#define TIMES_PER_SECOND 50
-#define COMP_MATCH (F_CPU / PRESCALER / TIMES_PER_SECOND - 1)
-
 static inline uint8_t start_timer1( uint16_t prescaler ) {
 
     switch (prescaler) {
@@ -15,6 +11,10 @@ static inline uint8_t start_timer1( uint16_t prescaler ) {
         default:   return 0;
     }
 }
+
+#define PRESCALER 8
+#define TIMES_PER_SECOND 50
+#define COMP_MATCH (F_CPU / PRESCALER / TIMES_PER_SECOND - 1)
 
 void timers_init( void ) {
 

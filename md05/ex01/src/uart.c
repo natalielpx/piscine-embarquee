@@ -1,9 +1,5 @@
 #include "../embd.h"
 
-#define FOSC 16000000   // OSCillator Frequency (Clock Speed)
-#define BAUD 115200
-#define MYUBRR 8        // ref: datasheet pg199 tabe20-7
-
 // Sets baud rate to 115200
 // Enables receiver and transmitter
 // Sets character size to 8
@@ -51,10 +47,22 @@ void uart_init ( void ) {
     UCSR0C = (1 << UCSZ01) | (1 << UCSZ00);
 }
 
+// Waits for data to be present in receive buffer by checking RXCn Flag
+// Read buffer and return value
+// ref: datasheet pg189
+uint8_t uart_rx( void ) {
+
+    // Wait for data to be received
+    while (!(UCSR0A & (1 << RXC0)));
+
+    // Get and return received data from buffer
+    return UDR0;
+}
+
 // Once Data Register Empty (UDREN) Flag in Control and Status Register A (UCSRNA) set
 // Put data into transmit buffer and send
 // ref: datasheet pg186
-void uart_tx( char c ) {
+void uart_tx( uint8_t c ) {
 
     // Wait for empty transmit buffer
     // ref: datasheet pg200
@@ -66,20 +74,17 @@ void uart_tx( char c ) {
     UDR0 = c;
 }
 
-void uart_printstr( const char * str ) {
+void uart_print_str( const uint8_t * str ) {
 
     for (int i = 0; str[i]; ++i)
         uart_tx(str[i]);
 }
 
-// Waits for data to be present in receive buffer by checking RXCn Flag
-// Read buffer and return value
-// ref: datasheet pg189
-char uart_rx( void ) {
+void uart_print_hex( uint8_t num ) {
 
-    // Wait for data to be received
-    while (!(UCSR0A & (1 << RXC0)));
-
-    // Get and return received data from buffer
-    return UDR0;
+    static const uint8_t hex[HEX] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+                                    'a', 'b', 'c', 'd', 'e', 'f'};
+    
+    uart_tx(hex[num / HEX]);
+    uart_tx(hex[num % HEX]);
 }

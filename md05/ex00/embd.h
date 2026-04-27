@@ -35,28 +35,26 @@
 # define SET_FLAG 0
 # define CLR_FLAG 1
 
-#define ADC_CH0 0x0000
-#define ADC_CH1 0x0001
-#define ADC_CH2 0x0010
-#define ADC_CH3 0x0011
-#define ADC_CH4 0x0100
-#define ADC_CH5 0x0101
-#define ADC_CH6 0x0110
-#define ADC_CH7 0x0111
-#define ADC_CH8 0x1000
-
 # define READ_PIN(reg, bit) !!(reg & (1 << bit))
 # define SET_PIN(reg, bit, val) (val ? (reg |= (1 << bit)) : (reg &= ~(1 << bit)))
 # define TOGGLE_PIN(reg, bit) (reg ^= (1 << bit))
 
 // ----- UART -----
 
-void uart_init( void );
-void uart_tx( char );
-void uart_printstr( const char * );
-char uart_rx( void );
+# define BIN 2
+# define DEC 10
+# define HEX 16
+
+# define MYUBRR 8   // ref: datasheet pg199 tabe20-7
+
+void    uart_init( void );
+uint8_t uart_rx( void );
+void    uart_tx( uint8_t );
+void    uart_print_str( const uint8_t * );
+void    uart_print_hex( uint8_t );
 
 // ----- TIMER -----
+
 void timers_init( void );
 
 #endif

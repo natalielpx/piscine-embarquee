@@ -41,12 +41,20 @@
 
 // ----- UART -----
 
-void uart_init( void );
-void uart_tx( char );
-void uart_printstr( const char * );
-char uart_rx( void );
+# define BIN 2
+# define DEC 10
+# define HEX 16
+
+# define MYUBRR 8   // ref: datasheet pg199 tabe20-7
+
+void    uart_init( void );
+uint8_t uart_rx( void );
+void    uart_tx( uint8_t );
+void    uart_print_str( const uint8_t * );
+void    uart_print_hex( uint8_t );
 
 // ----- TIMER -----
+
 void timers_init( void );
 
 #endif
