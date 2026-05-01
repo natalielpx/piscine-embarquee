@@ -40,7 +40,8 @@ CFLAGS	= -Os -Wall -Wextra -Werror
 SRCS_DIR	:= src
 SRCS		:= \
 				main.c \
-				uart.c
+				uart.c \
+				parse.c
 OBJS_DIR	:= obj
 OBJS 		:= $(addprefix $(OBJS_DIR)/, $(SRCS:.c=.o))
 ELF			= embd.elf

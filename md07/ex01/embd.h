@@ -42,7 +42,6 @@
 enum States {
 	
 	IDLE,
-	PARSE,
 	READ_EEPROM,
 	WRITE_EEPROM
 };
@@ -96,5 +95,10 @@ bool i2c_check_status( uint8_t );
 int aht20_init( void );
 int aht20_trig( void );
 int aht20_read_status( uint8_t );
+
+// ----- PARSE -----
+int valid_input( volatile uint8_t * );
+uint32_t get_addr( volatile uint8_t * );
+uint8_t get_value( volatile uint8_t * );
 
 #endif

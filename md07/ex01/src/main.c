@@ -1,104 +1,25 @@
 #include "../embd.h"
 
-unsigned char EEPROM_read(unsigned int addr) {
+unsigned char eeprom_read(unsigned int addr) {
 
-	// Wait for completion of previous write
-	while(EECR & (1 << EEPE));
-
-	// Set up address register
-	EEAR = addr;
-
-	// Trigger eeprom read
-	EECR |= (1 << EERE);
-
-	// Return data
-	return EEDR;
+	while(EECR & (1 << EEPE));	// Wait for completion of previous write
+	EEAR = addr;				// Set up address register
+	EECR |= (1 << EERE);		// Trigger eeprom read
+	return EEDR;				// Return data
 }
 
-static inline int valid_hex( uint8_t c ) {
+void eeprom_write( uint32_t addr, uint8_t data ) {
 
-	return (('0' <= c && c <= '9') ||
-			('A' <= c && c <= 'F') ||
-			('a' <= c && c <= 'f'));
-}
-
-static inline int valid_input( volatile uint8_t * cmd ) {
-
-	// Check first characters
-	if (!valid_hex(cmd[0]))	return 0;
-
-	// Check 0 00
-	if (cmd[1] == ' ') {
-		if (!valid_hex(cmd[2]))	return 0;
-		if (!valid_hex(cmd[3]))	return 0;
-		if (cmd[4] != 0)		return 0;
-		if (cmd[5] != 0)		return 0;
-		if (cmd[6] != 0)		return 0;
-		return 1;
-	}
-
-	// Check 00 00
-	else if (valid_hex(cmd[1])) {
-
-		if (cmd[2] == ' ') {
-			if (!valid_hex(cmd[3]))	return 0;
-			if (!valid_hex(cmd[4]))	return 0;
-			if (cmd[5] != 0)		return 0;
-			return 1;
-		}
-
-	// Check 000 00
-		else if (valid_hex(cmd[2])) {
-
-			if (cmd[0] != '1' && cmd[0] != '2' && cmd[0] != '3') return 0;
-			if (cmd[3] != ' ')		return 0;
-			if (!valid_hex(cmd[4]))	return 0;
-			if (!valid_hex(cmd[5]))	return 0;
-			if (cmd[6] != 0)		return 0;
-			return 1;
-		}
-		else return 0;
-	}
-	else return 0;
-}
-
-static inline uint8_t hex_value( uint8_t c ) {
-
-	if		('a' <= c)	return (c - 'a' + 10);
-	else if	('A' <= c)	return (c - 'A' + 10);
-	else				return (c - '0');
-}
-
-uint32_t get_addr( volatile uint8_t * buf ) {
-
-	// Find separator
-	int index = 0;
-	while (buf[index] != ' ')
-		++index;
-
-	uint32_t addr = 0;
-	uint8_t pow = 0;
-	while(index > 0) {
-		--index;
-		addr += hex_value(buf[index]) << (4 * pow);
-		++pow;
-	}
-
-	return addr;
-}
-
-uint32_t get_value( volatile uint8_t * buf ) {
-	
-	// Find separator
-	int index = 0;
-	while (buf[index] != ' ')
-		++index;
-
-	return (hex_value(buf[index + 1]) * 16 + hex_value(buf[index + 2]));
+	while(READ_PIN(EECR, EEPE) != 0);		// Wait until EEPE becomes zero.
+	while(READ_PIN(SPMCSR, SPMEN) != 0);	// 	Wait until SPMEN in SPMCSR becomes zero.
+	EEAR = addr;							// 	Write new EEPROM address to EEAR (optional).
+	EEDR = data;							// 	Write new EEPROM data to EEDR (optional).
+	EECR = (1 << EEMPE);						// 	Write 1 to EEMPE while writing 0 to EEPE
+	EECR |= (1 << EEPE);					// 	Within four clock cycles, write 1 to EEPE
 }
 
 volatile uint32_t addr = 0;
-volatile uint8_t value = 0;
+volatile uint8_t data = 0;
 
 int get_input( void ) {
 
@@ -120,7 +41,7 @@ int get_input( void ) {
 		valid = valid_input(buf);		// Check valid input
 		if (valid) {
 			addr = get_addr(buf);
-			value = get_value(buf);
+			data = get_value(buf);
 		}
 		for (int j = 0; j < 7; ++j)
 			buf[j] = 0;					// Clear buffer
@@ -132,10 +53,6 @@ int get_input( void ) {
 		uart_tx(c);		// Print input
 		buf[i] = c;		// Record in input
 		++i;			// Increment index
-	}
-
-	if (valid) {
-
 	}
 
 	return valid;
@@ -162,19 +79,18 @@ int main( void ) {
 		if (action == IDLE) continue;
 
 		if (action == READ_EEPROM) {
-			if (EEPROM_read(addr) != value) {
-				uart_print_str("write to eeprom\r\n");
+			if (eeprom_read(addr) != data)
 				action = WRITE_EEPROM;
-			}
-			else {
-				uart_print_str("same value, do nothing\r\n");
+			else
 				action = IDLE;
-			}
 		}
 
 		if (action == WRITE_EEPROM) {
-			// uart_print_str("write into eeprom");
 
+			// Write to eeprom
+			eeprom_write(addr, data);
+
+			//  Print results
 			uint32_t index = 0x0000;
 			while (index < 0x0400) {
 
@@ -184,11 +100,16 @@ int main( void ) {
 					uart_print_addr(index);
 					uart_tx(' ');
 				}
-				uart_print_hex(EEPROM_read(index));
-				uart_tx(' ');
+				if (index == addr)
+					uart_print_str("\x1b[31m");
+				uart_print_hex(eeprom_read(index));
+				uart_print_str("\x1b[0m ");
 
 				++index;
 			}
+
+			// Reset loop
+			action = IDLE;
 		}
 	}
 }
