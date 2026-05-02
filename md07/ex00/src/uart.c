@@ -85,8 +85,8 @@ void uart_print_hex( uint8_t num ) {
     static const uint8_t hex[HEX] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
                                     'a', 'b', 'c', 'd', 'e', 'f'};
     
-    uart_tx(hex[num / HEX]);
-    uart_tx(hex[num % HEX]);
+    uart_tx(hex[num >> 4]);
+    uart_tx(hex[num & 0xf]);
 }
 
 void uart_print_addr( uint32_t addr ) {
@@ -99,4 +99,10 @@ void uart_print_addr( uint32_t addr ) {
     
     for (int i = 7; i >= 0; --i)
         uart_tx(hex[(addr >> (i * 4)) & 0xf]);
+}
+
+void uart_print_newline( void ) {
+
+    uart_tx('\r');
+    uart_tx('\n');
 }

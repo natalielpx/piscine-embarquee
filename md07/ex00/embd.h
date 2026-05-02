@@ -63,6 +63,7 @@ void    uart_tx( char );
 void    uart_print_str( const char * );
 void    uart_print_hex( uint8_t );
 void    uart_print_addr( uint32_t );
+void    uart_print_newline( void );
 
 // ----- TIMER -----
 
